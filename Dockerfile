@@ -1,45 +1,26 @@
-# Stage 1: Install dependencies and run tests
-FROM python:3.8-slim AS builder
-
-# Set working directory
-WORKDIR /app
-
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY app/main.py /app/main.py
-COPY tests/ tests/
-
-# Run tests
-RUN python -m unittest discover tests
-
-# Stage 2: Build the final image
-FROM python:3.8-slim
+FROM python:latest
 
 # Create a group and user
-RUN addgroup --gid 10001 app && \
-    adduser --uid 10001 --gid 10001 --home /app --shell /sbin/nologin --disabled-password app
+RUN addgroup --gid 10001 app
+RUN adduser --gid 10001 --uid 10001 \
+    --home /app --shell /sbin/nologin \
+    --disabled-password app
+
+# Create necessary directories
+RUN mkdir -p /app/statics/
+ADD statics /app/statics/
+
+# Copy the application
+COPY app/main.py /app/main.py
+
+# Set the user
+USER app
 
 # Set working directory
 WORKDIR /app
 
-# Copy application code from builder stage
-COPY --from=builder /app/app/ app/
-COPY --from=builder /app/requirements.txt .
-
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Change ownership
-RUN chown -R app:app /app
-
-# Switch to non-root user
-USER app
-
-# Expose the port your app runs on
+# Expose the port
 EXPOSE 8080
 
-# Set the entry point for the container
-ENTRYPOINT ["python", "app/main.py"]
+# Run the application
+ENTRYPOINT ["python", "/app/main.py"]

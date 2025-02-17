@@ -15,7 +15,7 @@ jobs:
 
   build-docker-image:
     docker:
-      - image: circleci/docker:19.03.8
+      - image: circleci/docker:latest
     steps:
       - checkout
       - setup_remote_docker

@@ -11,7 +11,7 @@ jobs:
           command: pip install -r requirements.txt
       - run:
           name: Run unit tests
-          command: pytest
+          command: Test.py
 
   build-docker-image:
     docker:

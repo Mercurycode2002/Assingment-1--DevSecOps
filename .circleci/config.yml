@@ -15,7 +15,7 @@ jobs:
 
   build-docker-image:
     docker:
-      - image: circleci/docker:latest
+      - image: circleci/python
     steps:
       - checkout
       - setup_remote_docker

@@ -11,7 +11,7 @@ RUN mkdir -p /app/statics/
 ADD statics /app/statics/
 
 # Copy the application
-COPY app/main.py /app/main.py
+COPY .
 
 # Set the user
 USER app

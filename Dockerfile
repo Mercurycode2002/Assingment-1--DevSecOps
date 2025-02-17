@@ -1,28 +1,45 @@
-# Use the official Python image from the Docker Hub
-FROM python:3.8-slim
+# Stage 1: Install dependencies and run tests
+FROM python:3.8-slim AS builder
 
-# Create a group and user with specific IDs
-RUN addgroup --gid 10001 app && \
-    adduser --uid 10001 --gid 10001 --home /app --shell /sbin/nologin --disabled-password app
-
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code
-COPY . .
+# Copy application code
+COPY app/ app/
+COPY tests/ tests/
 
-# Change ownership of the application directory
+# Run tests
+RUN python -m unittest discover tests
+
+# Stage 2: Build the final image
+FROM python:3.8-slim
+
+# Create a group and user
+RUN addgroup --gid 10001 app && \
+    adduser --uid 10001 --gid 10001 --home /app --shell /sbin/nologin --disabled-password app
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code from builder stage
+COPY --from=builder /app/app/ app/
+COPY --from=builder /app/requirements.txt .
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Change ownership
 RUN chown -R app:app /app
 
-# Switch to the non-root user
+# Switch to non-root user
 USER app
 
-# Expose the port the application runs on
+# Expose the port your app runs on
 EXPOSE 8080
 
-# Define the command to run the application
-ENTRYPOINT ["python", "Test.py"]
+# Set the entry point for the container
+ENTRYPOINT ["python", "app/main.py"]
